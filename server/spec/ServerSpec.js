@@ -29,6 +29,8 @@ describe('Node Server Request Listener Function', function() {
 
     handler.requestHandler(req, res);
 
+    console.log('coming from spec res._data', res._data)
+
     expect(JSON.parse.bind(this, res._data)).to.not.throw();
     expect(res._ended).to.equal(true);
   });
@@ -116,4 +118,9 @@ describe('Node Server Request Listener Function', function() {
       });
   });
 
+  describe('3 new tests', () => {
+    it ('should do a new test', () => {
+      expect(true).to.be.true;
+    });
+  });
 });
