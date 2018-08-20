@@ -1,3 +1,4 @@
+const dummyMessages = require('./data/dummyData').messages;
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -28,6 +29,50 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
+
+  
+  if (request.url === '/classes/messages' && request.method === 'GET') {
+    var statusCode = 200;
+    var headers = defaultCorsHeaders;
+    // headers['Content-Type'] = 'text/plain';
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(statusCode, headers);
+
+    let responseObj = {
+      results: dummyMessages,
+    };
+    response.end(JSON.stringify(responseObj));
+  }
+  if (request.url === '/classes/messages' && request.method === 'POST') {
+    let data = [];
+
+    request.on('data', (chunk) => {
+      console.log('I am the chunk', chunk);
+      data.push(chunk);
+    });
+    request.on('end', () => {
+      data = Buffer.concat(data).toString();
+      console.log(data);
+    })
+
+    var statusCode = 201;
+    var headers = defaultCorsHeaders;
+
+    // console.log(request);
+
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(statusCode, headers);
+
+    response.end(JSON.stringify([]));
+  } 
+  // else {
+  //   var statusCode = 404;
+  //   var headers = defaultCorsHeaders;
+  //   headers['Content-Type'] = 'text/plain';
+  //   response.writeHead(statusCode, headers);
+
+  //   response.end('404 not found');
+  // }
 
   // The outgoing status.
   var statusCode = 200;
