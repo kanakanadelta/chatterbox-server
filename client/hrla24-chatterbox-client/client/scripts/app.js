@@ -51,7 +51,6 @@ var app = {
         $('.spinner').hide();
         // console.log(JSON.stringify(data.results));
         console.log('coming from success ajax callback', data);
-        // app.messages = data.results;
         // data.results.forEach((message, index) => {
         //   message.index = index;
         // });

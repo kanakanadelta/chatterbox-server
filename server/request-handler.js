@@ -1,4 +1,8 @@
 // const messages = require('./data/dummyData').messages;
+
+let fs = require('fs');
+const url = require('url');
+
 let messages = [
   {
     username: 'test',
@@ -37,8 +41,29 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
+  // if (request.url === '/') {
+  //   //node's file system
+  //   // fs.readFile('/client/hrla24-chatterbox-client/index.html', function(err, data) {
+  //   //   var headers = defaultCorsHeaders;
+  //   //   headers['Content-Type'] = 'text/html';
+  //   //   response.writeHead(200, headers);
+  //   //   // response.write(data);
+  //   //   response.end(data);
+  //   // });
+  //   let syncFs = fs.readFileSync(__dirname + '/../client/hrla24-chatterbox-client/client/index.html') 
+  //   var headers = defaultCorsHeaders;
+  //   console.log(syncFs.toString());
+  //   headers['Content-Type'] = 'text/html';
+  //   headers['Location'] = 'http://127.0.0.1:3000/classes/messages';
+  //   response.writeHead(301, headers);
+  //   response.write(syncFs);
+  //   return response.end(syncFs);
+  // }
+  const parsedUrl = url.parse(request.url).pathname
+  console.log('i am parsed parsedUrl', parsedUrl);
+
   // if our request url does not match /classes/messages
-  if (request.url !== '/classes/messages') {
+  if (parsedUrl !== '/classes/messages') {
     var statusCode = 404;
 
     //corseheaders is a mechanism that uses additional HTTP headers to tell a browser
@@ -51,23 +76,27 @@ var requestHandler = function(request, response) {
     response.end('404 not found');
   }
   
-  if (request.url === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {
-    console.log(request.headers);
+  // if (request.url === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {
+  if (parsedUrl === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {  
+    // console.log(request.headers);
 
+    // var headers = defaultCorsHeaders;
+    // headers['Content-Type'] = 'application/json';
+    // response.writeHead(200, headers);
 
-    var statusCode = 200;
+    // let responseObj = {
+    //   results: messages,
+    // };
+    // response.end(JSON.stringify(responseObj));
+    const syncFs = fs.readFileSync(__dirname + '/../client/hrla24-chatterbox-client/client/index.html');
     var headers = defaultCorsHeaders;
-    // headers['Content-Type'] = 'text/plain';
-    headers['Content-Type'] = 'application/json';
-    response.writeHead(statusCode, headers);
+    headers['Content-Type'] = 'text/html';
+    response.writeHead(200, headers);
 
-    let responseObj = {
-      results: messages,
-    };
-    response.end(JSON.stringify(responseObj));
+    response.end(syncFs);
   }
 
-  if (request.url === '/classes/messages' && request.method === 'POST') {
+  if (parsedUrl === '/classes/messages' && request.method === 'POST') {
     let data = [];
 
     request.on('data', (buffer) => {
@@ -91,12 +120,13 @@ var requestHandler = function(request, response) {
     response.writeHead(statusCode, headers);
 
     // TODO - send stuff back
-    response.end(JSON.stringify({
-      results: messages
-    }));
+    let responseObj = {
+      results: messages,
+    };
+    response.end(JSON.stringify(responseObj));
   }
 
-  if(request.url === '/classes/messages' && request.method === 'DELETE') {
+  if(parsedUrl === '/classes/messages' && request.method === 'DELETE') {
     // find the specified ID of the selected message from the client
       // splce the id (index) from the server's messages array
     let toDelete;
@@ -121,8 +151,9 @@ var requestHandler = function(request, response) {
     response.end(JSON.stringify({
       message: 'Success',
     }));
-
   }
+
+  
 
   // // The outgoing status.
   // var statusCode = 200;
@@ -160,7 +191,7 @@ var requestHandler = function(request, response) {
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
 var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
+  'access-control-allow-origin': '*', // what is this
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
