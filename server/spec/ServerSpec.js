@@ -130,7 +130,17 @@ describe('Node Server Request Listener Function', function() {
 
       handler.requestHandler(reqGet, resGet);
 
+      expect(JSON.parse(resDel._data).message).to.equal('Success');
+    });
 
+    it('should delete a message and receive a Success message', () => {
+      var reqDel = new stubs.request('/classes/messages', 'DELETE', 0);
+      var resDel = new stubs.response();
+
+      handler.requestHandler(reqDel, resDel);
+
+      expect(resDel._responseCode).to.equal(202);
+      
       expect(JSON.parse(resDel._data).message).to.equal('Success');
     });
 
