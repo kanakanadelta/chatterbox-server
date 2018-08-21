@@ -119,7 +119,7 @@ describe('Node Server Request Listener Function', function() {
   });
 
   describe('3 new tests', () => {
-    it ('should do a new test', () => {
+    it('should do a new test', () => {
       expect(true).to.be.true;
     });
   });

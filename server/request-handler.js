@@ -1,5 +1,6 @@
 // const messages = require('./data/dummyData').messages;
-let messages = [];
+let messages = [
+];
 /*************************************************************\
 
 You should implement your request handler function in this file.
@@ -34,6 +35,10 @@ var requestHandler = function(request, response) {
   // if our request url does not match /classes/messages
   if (request.url !== '/classes/messages') {
     var statusCode = 404;
+
+    //corseheaders is a mechanism that uses additional HTTP headers to tell a browser
+    //to let a web application running at one origin (domain) have permission 
+    //to access selected resources from a server at a different origin
     var headers = defaultCorsHeaders;
     headers['Content-Type'] = 'text/plain';
     response.writeHead(statusCode, headers);
@@ -41,7 +46,10 @@ var requestHandler = function(request, response) {
     response.end('404 not found');
   }
   
-  if (request.url === '/classes/messages' && request.method === 'GET') {
+  if (request.url === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {
+    console.log(request.headers);
+
+
     var statusCode = 200;
     var headers = defaultCorsHeaders;
     // headers['Content-Type'] = 'text/plain';
@@ -57,8 +65,8 @@ var requestHandler = function(request, response) {
   if (request.url === '/classes/messages' && request.method === 'POST') {
     let data = [];
 
-    request.on('data', (chunk) => {
-      data.push(chunk);
+    request.on('data', (buffer) => {
+      data.push(buffer);
     });
     request.on('end', () => {
       data = Buffer.concat(data).toString();
@@ -81,6 +89,33 @@ var requestHandler = function(request, response) {
     response.end(JSON.stringify({
       results: messages
     }));
+  }
+
+  if(request.url === '/classes/messages' && request.method === 'DELETE') {
+    // find the specified ID of the selected message from the client
+      // splce the id (index) from the server's messages array
+    let toDelete;
+    
+    request.on('data', (data) => {
+      toDelete = data.toString();
+    });
+
+    request.on('end', () => {
+      console.log('messages before: ', messages);
+      messages.splice(toDelete, 1);
+      console.log('updated messages: ', messages)
+    });
+
+    var statusCode = 202;
+    var headers = defaultCorsHeaders;
+
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(statusCode, headers);
+
+    response.end(JSON.stringify({
+      message: 'Success',
+    }));
+
   }
 
   // // The outgoing status.
