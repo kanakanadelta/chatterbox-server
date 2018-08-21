@@ -1,5 +1,10 @@
 // const messages = require('./data/dummyData').messages;
 let messages = [
+  {
+    username: 'test',
+    text: 'hello world',
+    createdAt: 'Land before time',
+  }
 ];
 /*************************************************************\
 
@@ -101,8 +106,9 @@ var requestHandler = function(request, response) {
     });
 
     request.on('end', () => {
+      console.log('i am the index from server', JSON.parse(toDelete));
       console.log('messages before: ', messages);
-      messages.splice(toDelete, 1);
+      messages.splice(+JSON.parse(toDelete), 1);
       console.log('updated messages: ', messages)
     });
 

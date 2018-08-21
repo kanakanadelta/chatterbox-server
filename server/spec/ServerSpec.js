@@ -119,8 +119,42 @@ describe('Node Server Request Listener Function', function() {
   });
 
   describe('3 new tests', () => {
-    it('should do a new test', () => {
-      expect(true).to.be.true;
+    it('should delete a message and receive a Success message', () => {
+      var reqDel = new stubs.request('/classes/messages', 'DELETE', 0);
+      var resDel = new stubs.response();
+
+      handler.requestHandler(reqDel, resDel);
+
+      var reqGet = new stubs.request('/classes/messages', 'GET');
+      var resGet = new stubs.response();
+
+      handler.requestHandler(reqGet, resGet);
+
+
+      expect(JSON.parse(resDel._data).message).to.equal('Success');
+    });
+
+    it('should delete a message from the server', () => {
+      var reqGet = new stubs.request('/classes/messages', 'GET');
+      var resGet = new stubs.response();
+
+      handler.requestHandler(reqGet, resGet);
+      console.log('response1', resGet._data);
+      var initialMessageLength = JSON.parse(resGet._data).results.length;
+
+      var reqDel = new stubs.request('/classes/messages', 'DELETE', 0);
+      var resDel = new stubs.response();
+
+      handler.requestHandler(reqDel, resDel);
+
+      var reqGet2 = new stubs.request('/classes/messages', 'GET');
+      var resGet2 = new stubs.response();
+
+      handler.requestHandler(reqGet2, resGet2);
+      console.log('response2', resGet2._data);
+      var finalMessageLength = JSON.parse(resGet2._data).results.length;
+
+      expect(finalMessageLength).to.equal(initialMessageLength - 1);
     });
   });
 });
