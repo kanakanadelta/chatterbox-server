@@ -2,7 +2,7 @@ var app = {
   messages: [],
   friends: [],
   // server: 'http://parse.LA.hackreactor.com/chatterbox/classes/messages',
-  server: 'http://127.0.0.1:3000/classes/messages',
+  server: 'http://127.0.0.1:3000/classes/messages/get',
   init: function() {
     $('.spinner').show();
     app.fetch();
@@ -50,7 +50,7 @@ var app = {
       success: function (data) {
         $('.spinner').hide();
         // console.log(JSON.stringify(data.results));
-        console.log('coming from success ajax callback', data);
+        // console.log('coming from success ajax callback', data);
         // data.results.forEach((message, index) => {
         //   message.index = index;
         // });

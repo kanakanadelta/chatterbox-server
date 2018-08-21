@@ -63,7 +63,7 @@ var requestHandler = function(request, response) {
   console.log('i am parsed parsedUrl', parsedUrl);
 
   // if our request url does not match /classes/messages
-  if (parsedUrl !== '/classes/messages') {
+  if (parsedUrl !== '/classes/messages' && parsedUrl !== '/classes/messages/get' ) {
     var statusCode = 404;
 
     //corseheaders is a mechanism that uses additional HTTP headers to tell a browser
@@ -80,14 +80,7 @@ var requestHandler = function(request, response) {
   if (parsedUrl === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {  
     // console.log(request.headers);
 
-    // var headers = defaultCorsHeaders;
-    // headers['Content-Type'] = 'application/json';
-    // response.writeHead(200, headers);
-
-    // let responseObj = {
-    //   results: messages,
-    // };
-    // response.end(JSON.stringify(responseObj));
+    
     const syncFs = fs.readFileSync(__dirname + '/../client/hrla24-chatterbox-client/client/index.html');
     var headers = defaultCorsHeaders;
     headers['Content-Type'] = 'text/html';
@@ -96,19 +89,43 @@ var requestHandler = function(request, response) {
     response.end(syncFs);
   }
 
-  if (parsedUrl === '/classes/messages' && request.method === 'POST') {
-    let data = [];
+  if (request.url === '/classes/messages/get' && request.method === 'GET') {
+    var headers = defaultCorsHeaders;
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(200, headers);
 
+    let responseObj = {
+      results: messages,
+    };
+    response.end(JSON.stringify(responseObj));
+  }
+
+  if (parsedUrl === '/classes/messages/get' && request.method === 'POST') {
+
+    
+    let data = [];
+    
     request.on('data', (buffer) => {
       data.push(buffer);
     });
     request.on('end', () => {
       data = Buffer.concat(data).toString();
-
+      
+      
       // what to do with the sent message?
       // store in the messages
+      // messages.unshift(JSON.parse(data));
       messages.unshift(JSON.parse(data));
       // console.log('coming from post request', messages);
+
+      
+      //store updated messages array to messages.json (JSON since we storing data)
+                                                  //vv//format into a much readable Object literal syntax 
+      fs.writeFile('message.json', JSON.stringify(messages, null, 2), (err) => {
+        if (err) throw err;
+        console.log('The file has been saved!');
+      });
+
     });
 
     var statusCode = 201;
@@ -126,7 +143,7 @@ var requestHandler = function(request, response) {
     response.end(JSON.stringify(responseObj));
   }
 
-  if(parsedUrl === '/classes/messages' && request.method === 'DELETE') {
+  if(parsedUrl === '/classes/messages/get' && request.method === 'DELETE') {
     // find the specified ID of the selected message from the client
       // splce the id (index) from the server's messages array
     let toDelete;
