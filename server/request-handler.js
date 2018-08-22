@@ -1,74 +1,24 @@
-// const messages = require('./data/dummyData').messages;
-
 let fs = require('fs');
 const url = require('url');
 
-let messages = [
-  {
-    username: 'test',
-    text: 'hello world',
-    createdAt: 'Land before time',
-  }
-];
-/*************************************************************\
-
-You should implement your request handler function in this file.
-
-requestHandler is already getting passed to http.createServer()
-in basic-server.js, but it won't work as is.
-
-You'll have to figure out a way to export this function from
-this file and include it in basic-server.js so that it actually works.
-
-*Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
-
-**************************************************************/
+// initialize with messages from local file 
+let messages = JSON.parse(fs.readFileSync(__dirname + '/messages.json').toString());
 
 var requestHandler = function(request, response) {
-  // Request and Response come from node's http module.
-  //
-  // They include information about both the incoming request, such as
-  // headers and URL, and about the outgoing response, such as its status
-  // and content.
-  //
-  // Documentation for both request and response can be found in the HTTP section at
-  // http://nodejs.org/documentation/api/
-
-  // Do some basic logging.
-  //
-  // Adding more logging to your server can be an easy way to get passive
-  // debugging help, but you should always be careful about leaving stray
-  // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
-  // if (request.url === '/') {
-  //   //node's file system
-  //   // fs.readFile('/client/hrla24-chatterbox-client/index.html', function(err, data) {
-  //   //   var headers = defaultCorsHeaders;
-  //   //   headers['Content-Type'] = 'text/html';
-  //   //   response.writeHead(200, headers);
-  //   //   // response.write(data);
-  //   //   response.end(data);
-  //   // });
-  //   let syncFs = fs.readFileSync(__dirname + '/../client/hrla24-chatterbox-client/client/index.html') 
-  //   var headers = defaultCorsHeaders;
-  //   console.log(syncFs.toString());
-  //   headers['Content-Type'] = 'text/html';
-  //   headers['Location'] = 'http://127.0.0.1:3000/classes/messages';
-  //   response.writeHead(301, headers);
-  //   response.write(syncFs);
-  //   return response.end(syncFs);
-  // }
+  // Just get endpoint that we are trying to locate, excluding query strings
   const parsedUrl = url.parse(request.url).pathname
-  console.log('i am parsed parsedUrl', parsedUrl);
 
   // if our request url does not match /classes/messages
   if (parsedUrl !== '/classes/messages' && parsedUrl !== '/classes/messages/get' ) {
     var statusCode = 404;
 
-    //corseheaders is a mechanism that uses additional HTTP headers to tell a browser
-    //to let a web application running at one origin (domain) have permission 
-    //to access selected resources from a server at a different origin
+    /* 
+     * corseheaders is a mechanism that uses additional HTTP headers to tell a browser
+     * to let a web application running at one origin (domain) have permission 
+     * to access selected resources from a server at a different origin
+     */
     var headers = defaultCorsHeaders;
     headers['Content-Type'] = 'text/plain';
     response.writeHead(statusCode, headers);
@@ -76,20 +26,23 @@ var requestHandler = function(request, response) {
     response.end('404 not found');
   }
   
-  // if (request.url === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {
   if (parsedUrl === '/classes/messages' && (request.method === 'GET' || request.method === 'OPTIONS')) {  
-    // console.log(request.headers);
-
+    // send index file
+    fs.readFile(__dirname + '/../client/hrla24-chatterbox-client/client/index.html', (err, data) => {
+      if (err) {
+        console.log(err);
+      } else {
+        var headers = defaultCorsHeaders;
+        headers['Content-Type'] = 'text/html';
+        response.writeHead(200, headers);
     
-    const syncFs = fs.readFileSync(__dirname + '/../client/hrla24-chatterbox-client/client/index.html');
-    var headers = defaultCorsHeaders;
-    headers['Content-Type'] = 'text/html';
-    response.writeHead(200, headers);
-
-    response.end(syncFs);
+        response.end(data);
+      }
+    });
   }
 
   if (request.url === '/classes/messages/get' && request.method === 'GET') {
+    // send messages
     var headers = defaultCorsHeaders;
     headers['Content-Type'] = 'application/json';
     response.writeHead(200, headers);
@@ -101,80 +54,65 @@ var requestHandler = function(request, response) {
   }
 
   if (parsedUrl === '/classes/messages/get' && request.method === 'POST') {
-
-    
     let data = [];
-    
+    // consume request data stream
     request.on('data', (buffer) => {
       data.push(buffer);
     });
-    request.on('end', () => {
-      data = Buffer.concat(data).toString();
-      
-      
-      // what to do with the sent message?
-      // store in the messages
-      // messages.unshift(JSON.parse(data));
-      messages.unshift(JSON.parse(data));
-      // console.log('coming from post request', messages);
 
+    request.on('end', () => {
+      data = Buffer.concat(data).toString();  
+
+      messages.unshift(JSON.parse(data));
       
       //store updated messages array to messages.json (JSON since we storing data)
-                                                  //vv//format into a much readable Object literal syntax 
-      fs.writeFile('message.json', JSON.stringify(messages, null, 2), (err) => {
+      //vv//format into a much readable Object literal syntax 
+      fs.writeFile(__dirname + '/messages.json', JSON.stringify(messages, null, 2), (err) => {
         if (err) throw err;
         console.log('The file has been saved!');
+
+        var statusCode = 201;
+        var headers = defaultCorsHeaders;
+        headers['Content-Type'] = 'application/json';
+        response.writeHead(statusCode, headers);
+
+        let responseObj = {
+          results: messages,
+        };
+        response.end(JSON.stringify(responseObj));
       });
-
     });
-
-    var statusCode = 201;
-    var headers = defaultCorsHeaders;
-
-    // console.log(request);
-
-    headers['Content-Type'] = 'application/json';
-    response.writeHead(statusCode, headers);
-
-    // TODO - send stuff back
-    let responseObj = {
-      results: messages,
-    };
-    response.end(JSON.stringify(responseObj));
   }
 
   if(parsedUrl === '/classes/messages/get' && request.method === 'DELETE') {
-    // find the specified ID of the selected message from the client
-      // splce the id (index) from the server's messages array
     let toDelete;
     
     request.on('data', (data) => {
+      // find the specified ID of the selected message from the client
       toDelete = data.toString();
     });
 
     request.on('end', () => {
-      console.log('i am the index from server', JSON.parse(toDelete));
-      console.log('messages before: ', messages);
+      // splice the id (index) from the server's messages array
       messages.splice(+JSON.parse(toDelete), 1);
-      console.log('updated messages: ', messages)
+
+      // re write updated messages
+      fs.writeFile(__dirname + '/messages.json', JSON.stringify(messages, null, 2), (err) => {
+        if (err) throw err;
+        console.log('The file has been saved!');
+
+        var statusCode = 202;
+        var headers = defaultCorsHeaders;
+
+        headers['Content-Type'] = 'application/json';
+        response.writeHead(statusCode, headers);
+
+        response.end(JSON.stringify({
+          message: 'Success',
+        }));
+      });
     });
-
-    var statusCode = 202;
-    var headers = defaultCorsHeaders;
-
-    headers['Content-Type'] = 'application/json';
-    response.writeHead(statusCode, headers);
-
-    response.end(JSON.stringify({
-      message: 'Success',
-    }));
   }
-
-  
-
-  // // The outgoing status.
-  // var statusCode = 200;
-
   // // See the note below about CORS headers.
   // var headers = defaultCorsHeaders;
 
